@@ -29,8 +29,20 @@ export const T = {
   types: { single: 'jednotlivá', pair: 'pár', block: 'blok', sheet: 'arch', cover: 'obálka', other: 'jiné' },
   addCat: '+ Katalog', errNoPhoto: 'Nejdřív vyber fotku.', yearFrom: 'Rok od', yearTo: 'Rok do',
   qty: 'Počet', type: 'Typ', num: 'Číslo', min: 'Od (Kč)', max: 'Do (Kč)', feat: 'Znaky',
+  bulk: 'Hromadné nahrání', bulkPick: 'Vybrat fotky', bulkSaved: 'Uloženo',
+  bulkHelp: 'Vyber více fotek. Každá fotka je jedna známka, výsledky se uloží do sbírky automaticky.',
+  qWait: 'čeká', qWork: 'zpracovávám…', qDone: 'uloženo', bulkWait: 'limit, čekám…',
+  stop: 'Zastavit', retry: 'Zkusit znovu',
+  search: 'Hledat ve sbírce', sortNew: 'Nejnovější', sortValue: 'Nejvyšší hodnota', sortCountry: 'Země',
+  noMatch: 'Nic nenalezeno.', review: 'zkontrolovat',
+  aucHist: 'Aukční historie', aucQuery: 'Hledaný výraz', aucLinks: 'Hledat prodané kusy v aukčních archivech',
+  aucFind: 'Najít prodeje (AI)', aucFinding: 'Hledám…', aucNote: 'Nalezené prodeje', aucSources: 'Zdroje',
+  aucWarn: 'Nalezeno AI přes vyhledávání. Cenu a datum vždy ověř ve zdroji.',
+  comps: 'Vlastní záznamy prodejů', compAdd: '+ Prodej', compWhere: 'Aukční dům', compDate: 'Datum',
+  compPrice: 'Cena (Kč)', compMedian: 'Medián prodejů',
+  backup: 'Zálohovat sbírku', restore: 'Obnovit ze zálohy', restored: 'Obnoveno', errBackup: 'Neplatná záloha.',
   app: 'Známky', modeProxy: 'Proxy', ukazka: 'UKÁZKA',
-  csvCols: ['Datum', 'Země', 'Rok od', 'Rok do', 'Nominále', 'Motiv', 'Typ', 'Počet', 'Stav', 'Min', 'Max', 'Spolehlivost', 'Katalog', 'Popis'],
+  csvCols: ['Datum', 'Země', 'Rok od', 'Rok do', 'Nominále', 'Motiv', 'Typ', 'Počet', 'Stav', 'Min', 'Max', 'Spolehlivost', 'Katalog', 'Popis', 'Medián aukcí'],
 };
 
 const COND_KEY = { on_cover: 'cover', damaged: 'dmg' };
@@ -52,3 +64,7 @@ export function czk(n) {
 
 // "100 Kč – 300 Kč" or "bez údajů"
 export const rangeText = (r) => (r.max > 0 ? `${czk(r.min)} – ${czk(r.max)}` : T.nd);
+
+// Error -> screen text. Known keys give the Czech message; `detail` (HTTP status, API message) is appended.
+export const errText = (e) =>
+  (T[e.message] ?? `${T.errGen} ${e.name}: ${e.message}`) + (e.detail ? ` (${e.detail})` : '');

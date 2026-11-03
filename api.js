@@ -7,7 +7,14 @@ import { base64 } from './image.js';
 const BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 const TIMEOUT = 25000;
 const TYPES = ['single', 'pair', 'block', 'sheet', 'cover', 'other'];
-const fail = (key) => new Error(key);
+const fail = (key, detail) => Object.assign(new Error(key), { detail });
+
+async function httpError(res) {
+  let msg = '';
+  try { msg = (await res.json()).error?.message ?? ''; } catch { /* body is not JSON */ }
+  const key = res.status === 429 ? 'errLim' : [400, 401, 403, 404].includes(res.status) ? 'errReq' : 'errGen';
+  return fail(key, `HTTP ${res.status}${msg ? `: ${msg.slice(0, 160)}` : ''}`);
+}
 
 async function call(body) {
   const s = getSettings();
@@ -34,20 +41,18 @@ async function call(body) {
   } finally {
     clearTimeout(timer);
   }
-  if (res.status === 429) throw fail('errLim');
-  if ([400, 401, 403, 404].includes(res.status)) throw fail('errReq');
-  if (!res.ok) throw fail('errGen');
+  if (!res.ok) throw await httpError(res);
   try {
     return await res.json();
   } catch {
-    throw fail('errGen');
+    throw fail('errGen', 'invalid JSON from API');
   }
 }
 
 function textOf(data) {
   const parts = data.candidates?.[0]?.content?.parts ?? [];
   const text = parts.map((p) => p.text ?? '').join('').trim();
-  if (!text) throw fail('errEmpty');
+  if (!text) throw fail('errEmpty', data.candidates?.[0]?.finishReason ?? data.promptFeedback?.blockReason);
   return text;
 }
 
@@ -90,7 +95,9 @@ export function normalize(raw) {
     condition: CONDS.includes(raw.visibleCondition) ? raw.visibleCondition : 'used',
     estimates: normalizeEstimates(raw.estimates),
     descriptionShort: text(raw.descriptionShort),
-    descriptionListing: text(raw.descriptionListing)
+    descriptionListing: text(raw.descriptionListing),
+    auctionQuery: text(raw.auctionQuery),
+    comps: [], salesNote: '', salesSources: []
   };
 }
 
@@ -117,19 +124,38 @@ const DESC_MODE = {
   listing: 'Write an auction listing: a title of at most 70 characters on the first line, then 5-7 sentences that honestly list all defects.'
 };
 
+const facts = (i) => ({
+  country: i.country, yearFrom: i.yearFrom, yearTo: i.yearTo, denomination: i.denomination, subject: i.subject,
+  itemType: i.itemType, quantity: i.quantity, catalog: i.catalog, features: i.features,
+  condition: i.condition, redFlags: i.redFlags, caveats: i.caveats
+});
+
 // Confirmed fields -> description text (no image).
 export async function describe(item, mode) {
-  const facts = {
-    country: item.country, yearFrom: item.yearFrom, yearTo: item.yearTo, denomination: item.denomination,
-    subject: item.subject, itemType: item.itemType, quantity: item.quantity, catalog: item.catalog,
-    features: item.features, condition: item.condition, redFlags: item.redFlags, caveats: item.caveats
-  };
   const data = await call({
     systemInstruction: { parts: [{ text: DESC_SYSTEM }] },
-    contents: [{ role: 'user', parts: [{ text: `${DESC_MODE[mode]}\n\n${JSON.stringify(facts)}` }] }],
+    contents: [{ role: 'user', parts: [{ text: `${DESC_MODE[mode]}\n\n${JSON.stringify(facts(item))}` }] }],
     generationConfig: { temperature: 0.6 }
   });
   return textOf(data);
+}
+
+const SALES_SYSTEM = `You research documented philatelic auction results. Use ONLY what the search returns.
+List each found sale of this exact stamp as: date - auction house - realised price with currency - URL.
+If no sale of this exact stamp is found, say so plainly. Never estimate, extrapolate or invent prices or dates. Write in Czech.`;
+
+// Google Search grounded lookup of past sales -> { text, sources: [{ title, url }] }.
+export async function findSales(item, query) {
+  const data = await call({
+    systemInstruction: { parts: [{ text: SALES_SYSTEM }] },
+    contents: [{ role: 'user', parts: [{ text: `Stamp: ${JSON.stringify(facts(item))}\nSearch hint: ${query}` }] }],
+    tools: [{ google_search: {} }],
+    generationConfig: { temperature: 0.2 }
+  });
+  const chunks = data.candidates?.[0]?.groundingMetadata?.groundingChunks ?? [];
+  const seen = new Map();
+  for (const c of chunks) if (c.web?.uri && !seen.has(c.web.uri)) seen.set(c.web.uri, { title: c.web.title || c.web.uri, url: c.web.uri });
+  return { text: textOf(data), sources: [...seen.values()] };
 }
 
 // Connection check: succeeds when the API answers with HTTP 200.

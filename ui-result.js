@@ -1,6 +1,6 @@
 // Result of a recognition (or demo / import): edit, then save to the collection.
 import { h } from './dom.js';
-import { T, yearLabel } from './i18n.js';
+import { T, yearLabel, errText } from './i18n.js';
 import { state, uid } from './state.js';
 import * as db from './db.js';
 import { editor, photo } from './ui-fields.js';
@@ -17,7 +17,7 @@ export function render(root, nav) {
       state.draft = null;
       nav('home');
     } catch (e) {
-      status.textContent = T[e.message] ?? T.errGen;
+      status.textContent = errText(e);
       save.disabled = false;
     }
   });

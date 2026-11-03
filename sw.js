@@ -1,9 +1,9 @@
-const CACHE = 'znamky-v1';
+const CACHE = 'znamky-v4';
 const SHELL = [
   './', './index.html', './styles.css', './manifest.webmanifest',
   './icon.svg', './icon-192.png', './icon-512.png',
   './main.js', './state.js', './db.js', './api.js', './image.js',
-  './i18n.js', './schema.js', './dom.js', './ui-fields.js', './csv.js', './price.js', './ui-home.js', './ui-capture.js', './ui-import.js',
+  './i18n.js', './schema.js', './dom.js', './ui-fields.js', './csv.js', './price.js', './ui-home.js', './ui-capture.js', './ui-import.js', './ui-bulk.js', './ui-auction.js', './auctions.js', './backup.js',
   './ui-result.js', './ui-detail.js', './ui-settings.js'
 ];
 

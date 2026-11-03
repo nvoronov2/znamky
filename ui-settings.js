@@ -1,10 +1,11 @@
 // Settings, onboarding and the demo card.
-import { h, field } from './dom.js';
-import { T } from './i18n.js';
+import { h, field, filePicker } from './dom.js';
+import { T, errText } from './i18n.js';
 import { MODELS, getSettings, saveSettings, state } from './state.js';
 import { normalize, ping } from './api.js';
 import * as db from './db.js';
 import { toCsv } from './csv.js';
+import { backupFile, deliver, restore } from './backup.js';
 
 const SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 400"><rect width="320" height="400" fill="#E8A33D"/><rect x="28" y="28" width="264" height="344" fill="none" stroke="#111318" stroke-width="4"/><circle cx="160" cy="150" r="56" fill="#111318"/><text x="160" y="300" font-size="34" text-anchor="middle" fill="#111318" font-family="serif">${T.ukazka}</text></svg>`;
 const PICTURE = `data:image/svg+xml;utf8,${encodeURIComponent(SVG)}`;
@@ -64,7 +65,14 @@ export function render(root, nav) {
   const test = async () => {
     status.className = 'status'; status.textContent = '…';
     try { await ping(); status.textContent = T.testOk; }
-    catch (e) { status.className = 'status err'; status.textContent = T[e.message] ?? e.message; }
+    catch (e) { status.className = 'status err'; status.textContent = errText(e); }
+  };
+  const backup = async () => {
+    try { await deliver(await backupFile()); } catch (e) { status.className = 'status err'; status.textContent = errText(e); }
+  };
+  const restoreFrom = async (file) => {
+    try { status.className = 'status'; status.textContent = `${T.restored}: ${await restore(file)}`; }
+    catch (e) { status.className = 'status err'; status.textContent = errText(e); }
   };
   const exportCsv = async () => { csv.value = toCsv(await db.all()); csv.focus(); csv.select(); };
 
@@ -75,5 +83,7 @@ export function render(root, nav) {
       field(T.mode, mode), keyField, proxyField, field(T.model, model),
       h('button', { class: 'btn block', onclick: test }, T.test), status,
       h('button', { class: 'btn block', onclick: openDemo(nav) }, T.demo),
-      h('button', { class: 'btn block', onclick: exportCsv }, T.csv), csv));
+      h('button', { class: 'btn block', onclick: exportCsv }, T.csv), csv,
+      h('button', { class: 'btn block', onclick: backup }, T.backup),
+      filePicker(T.restore, restoreFrom, { accept: 'application/json,.json' })));
 }

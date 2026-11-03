@@ -51,3 +51,10 @@ textarea{min-height:120px;resize:vertical}
 .catrow{display:grid;grid-template-columns:104px 1fr auto 44px;gap:8px;align-items:center;margin-bottom:8px}
 .tips{margin:16px 0 0;padding-left:18px}
 .bar+.stack{margin-top:0}
+.item.work{opacity:.75}
+a.btn{text-decoration:none;color:var(--text)}
+a:not(.btn){color:var(--acc)}
+.warnc{color:var(--warn)}
+.stack>.stack{margin-top:12px}
+.row>input[type=search]{flex:1 1 160px;width:auto}
+.row>select{flex:0 1 auto;width:auto}

@@ -1,6 +1,6 @@
 // A saved item: edit (autosaved), share, delete.
 import { h } from './dom.js';
-import { T, condLabel, rangeText, yearLabel } from './i18n.js';
+import { T, condLabel, rangeText, yearLabel, errText } from './i18n.js';
 import * as db from './db.js';
 import { priceOf } from './price.js';
 import { editor, photo } from './ui-fields.js';
@@ -14,7 +14,7 @@ export async function render(root, nav, id) {
   const item = await db.get(id);
   if (!item) throw new Error('errGen');
   const status = h('p', { class: 'status', role: 'status' });
-  const fail = (e) => { status.className = 'status err'; status.textContent = T[e.message] ?? T.errGen; };
+  const fail = (e) => { status.className = 'status err'; status.textContent = errText(e); };
   const persist = () => db.put(item).catch(fail);
 
   const share = async () => {

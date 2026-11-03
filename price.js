@@ -7,7 +7,8 @@ const clamp01 = (n) => Math.min(1, Math.max(0, Number.isFinite(n) ? n : 0));
 
 // Always returns all five conditions. Missing ones are derived from `used`
 // (confidence -0.15, floor 0); without `used` they are zeros.
-export function normalizeEstimates(est = {}) {
+export function normalizeEstimates(estimates) {
+  const est = estimates ?? {}; // the model may send null instead of omitting the block
   const base = isRange(est.used)
     ? { min: est.used.min, max: est.used.max, confidence: clamp01(est.used.confidence) }
     : { min: 0, max: 0, confidence: 0 };

@@ -15,13 +15,13 @@ export function h(tag, props = {}, ...kids) {
 
 export const field = (label, control) => h('label', { class: 'field' }, h('span', {}, label), control);
 
-// Button that opens the camera/gallery. Returns [button, hiddenInput] to append together.
-export function filePicker(label, onFile, { camera = false, cls = 'btn block' } = {}) {
-  const input = h('input', { type: 'file', accept: 'image/*', capture: camera ? 'environment' : false, class: 'hidden' });
+// Button that opens the camera/gallery (multiple: several photos at once). Returns [button, hiddenInput] to append together.
+export function filePicker(label, onFile, { camera = false, multiple = false, accept = 'image/*', cls = 'btn block' } = {}) {
+  const input = h('input', { type: 'file', accept, capture: camera ? 'environment' : false, multiple, class: 'hidden' });
   input.addEventListener('change', () => {
-    const file = input.files[0];
+    const files = [...input.files];
     input.value = '';
-    if (file) onFile(file);
+    if (files.length) onFile(multiple ? files : files[0]); // multiple -> array of files
   });
   return [h('button', { class: cls, onclick: () => input.click() }, label), input];
 }

@@ -1,6 +1,6 @@
 // Offline flow: copy the prompt, ask any model, paste its JSON back.
 import { h, field, filePicker } from './dom.js';
-import { T } from './i18n.js';
+import { T, errText } from './i18n.js';
 import { prepare } from './image.js';
 import { normalize, parseResponse, promptText } from './api.js';
 import { state } from './state.js';
@@ -18,7 +18,7 @@ export function render(root, nav) {
       preview.querySelector('img').src = shot.thumb;
       preview.classList.remove('hidden');
       say('');
-    } catch (e) { say(T[e.message] ?? T.errGen); }
+    } catch (e) { say(errText(e)); }
   };
   const copy = async () => {
     try { await navigator.clipboard.writeText(promptText('')); say(T.copied, false); }
@@ -29,7 +29,7 @@ export function render(root, nav) {
       if (!shot) throw new Error('errNoPhoto');
       state.draft = { ...normalize(parseResponse(json.value)), ...shot };
       nav('result');
-    } catch (e) { say(T[e.message] ?? T.errGen); }
+    } catch (e) { say(errText(e)); }
   };
 
   root.append(

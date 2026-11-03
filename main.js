@@ -1,5 +1,5 @@
 // Entry point: boot and routing. Screens are loaded on demand and export render(root, nav, arg).
-import { T } from './i18n.js';
+import { T, errText } from './i18n.js';
 import { h } from './dom.js';
 import { init } from './db.js';
 import { state, hasAccess } from './state.js';
@@ -9,6 +9,7 @@ const ROUTES = {
   home: ['ui-home', 'render'],
   capture: ['ui-capture', 'render'],
   import: ['ui-import', 'render'],
+  bulk: ['ui-bulk', 'render'],
   result: ['ui-result', 'render'],
   detail: ['ui-detail', 'render'],
   settings: ['ui-settings', 'render'],
@@ -18,7 +19,7 @@ const ROUTES = {
 function showError(e) {
   console.error(e);
   root.replaceChildren(h('div', { class: 'stack' },
-    h('p', { class: 'err', role: 'alert' }, T[e.message] ?? `${T.errGen} ${e.message}`),
+    h('p', { class: 'err', role: 'alert' }, errText(e)),
     h('button', { class: 'btn', onclick: () => nav('home') }, T.home)));
 }
 
@@ -37,4 +38,5 @@ export async function nav(name, arg) {
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
 state.memoryOnly = !(await init());
+navigator.storage?.persist?.(); // best effort: keeps iOS from clearing IndexedDB
 nav(hasAccess() ? 'home' : 'onboarding');

@@ -4,7 +4,8 @@ OUTPUT LANGUAGE: Czech for every free-text field. Keep enum tokens in English. C
 Never invent catalogue numbers; if unsure give the most likely and confidence below 0.5.
 Price is always a RANGE in CZK per condition: mnh, mh, used, on_cover, damaged.
 If it is a sheet or block, appraise the whole item and set quantity. If it is not a stamp, set isStamp=false.
-Fill caveats and 2-4 questionsForUser. Do not inflate. Say plainly when unsure.`;
+Fill caveats and 2-4 questionsForUser. Do not inflate. Say plainly when unsure.
+Set auctionQuery to a short search string (catalogue number, country, year, denomination) for searching auction archives.`;
 
 export const DEFAULT_HINT = 'Urči tento objekt a ohodnoť ho.';
 
@@ -30,6 +31,7 @@ export const SCHEMA = {
     yearTo: { type: 'integer', nullable: true },
     denomination: str,
     subject: str,
+    auctionQuery: str,
     catalog: {
       type: 'array',
       items: {

@@ -1,9 +1,10 @@
 // Editable item form shared by the result and detail screens.
 // Every field writes straight into `item`; onChange() lets the screen persist it.
 import { h, field } from './dom.js';
-import { T, czk, condLabel, rangeText } from './i18n.js';
+import { T, czk, condLabel, rangeText, errText } from './i18n.js';
 import { CONDS, confKey } from './price.js';
 import { describe } from './api.js';
+import { auction } from './ui-auction.js';
 
 const CATALOGS = ['Michel', 'Scott', 'Yvert'];
 
@@ -95,7 +96,7 @@ function description(item, onChange) {
     status.textContent = '';
     regen.disabled = auc.disabled = true;
     try { item[key()] = await describe(item, mode); show(); onChange(); }
-    catch (e) { status.textContent = T[e.message] ?? T.errGen; }
+    catch (e) { status.textContent = errText(e); }
     finally { regen.disabled = auc.disabled = false; }
   };
   area.addEventListener('change', () => { item[key()] = area.value; onChange(); });
@@ -116,6 +117,7 @@ export function editor(item, onChange) {
     typeAndQty(item, onChange),
     h('h2', {}, T.cat), catalogs(item, onChange),
     pricing(item, onChange),
+    auction(item, onChange),
     block(T.feat, 'features'), block(T.flags, 'redFlags'), block(T.qs, 'questionsForUser'),
     description(item, onChange),
     block(T.cav, 'caveats'));

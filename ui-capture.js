@@ -1,6 +1,6 @@
 // Capture: note + hint chips, camera/gallery, send to the model.
 import { h, field, filePicker } from './dom.js';
-import { T } from './i18n.js';
+import { T, errText } from './i18n.js';
 import { prepare } from './image.js';
 import { analyze } from './api.js';
 import { DEFAULT_HINT } from './schema.js';
@@ -25,8 +25,9 @@ export function render(root, nav, error = '') {
       state.draft = { ...item, image, thumb };
       nav('result');
     } catch (e) {
+      console.error(e);
       root.replaceChildren();
-      render(root, nav, T[e.message] ?? T.errGen);
+      render(root, nav, errText(e));
     }
   };
 
